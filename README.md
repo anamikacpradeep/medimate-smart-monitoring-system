@@ -48,8 +48,8 @@ Many patients forget to take medicines on time, and existing reminder systems la
 
 #### Screenshots
 
-![Screenshot1](<img width="1920" height="1020" alt="2026-02-21 (1)" src="https://github.com/user-attachments/assets/ee250ed9-60d6-496a-8aad-be5d9e78f36f" />
-)  
+<img width="1920" height="1020" alt="2026-02-21 (1)" src="https://github.com/user-attachments/assets/4eee2716-76c9-495c-b51b-8640e4c32b0c" />
+
 
 
 ![Screenshot2](<img width="1920" height="1020" alt="2026-02-21 (3)" src="https://github.com/user-attachments/assets/a4db22ef-9e3b-4484-b47f-6f4fcd80a9a0" />
