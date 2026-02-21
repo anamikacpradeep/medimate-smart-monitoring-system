@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MediMate Smart Tracker</title>
+<style>
+body{
+    font-family:Arial;
+    margin:0;
+    background:linear-gradient(135deg,#4facfe,#00f2fe);
+}
+header{
+    text-align:center;
+    padding:20px;
+    font-size:22px;
+    font-weight:bold;
+    color:white;
+}
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:20px;
+}
+.card{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+input, select{
+    padding:8px;
+    margin:5px;
+}
+button{
+    padding:8px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+.add{background:#2563eb;color:white;}
+.taken{background:#16a34a;color:white;}
+.schedule-item{
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    margin-top:8px;
+    border-radius:8px;
+    color:white;
+}
+.upcoming{background:#3b82f6;}
+.missed{background:#ef4444;}
+.done{background:#22c55e;}
+.stats{
+    display:flex;
+    gap:20px;
+}
+.stat{
+    flex:1;
+    padding:20px;
+    text-align:center;
+    color:white;
+    font-weight:bold;
+    border-radius:12px;
+}
+.blue{background:#3b82f6;}
+.green{background:#22c55e;}
+.red{background:#ef4444;}
+.guardian{
+    background:#e0f2fe;
+    padding:6px;
+    margin-top:5px;
+    border-radius:6px;
+}
+.popup{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<header>MediMate 💊 Smart Monitoring System</header>
+
+<div class="container">
+
+<!-- Calendar -->
+<div class="card">
+<h3>Select Date to View History</h3>
+<input type="date" id="historyDate" onchange="showHistory()">
+<div id="historyList"></div>
+</div>
+
+<!-- Add Medicine -->
+<div class="card">
+<h3>Add Medicine</h3>
+<input type="text" id="medName" placeholder="Medicine name">
+<input type="time" id="medTime">
+
+<select id="repeatType">
+<option value="none">No Repeat</option>
+<option value="daily">Daily</option>
+<option value="weekly">Weekly</option>
+</select>
+
+<button class="add" onclick="addMedicine()">Add</button>
+<div id="scheduleList"></div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+<div class="stat blue">Upcoming<br><span id="upcoming">0</span></div>
+<div class="stat green">Taken<br><span id="taken">0</span></div>
+<div class="stat red">Missed<br><span id="missed">0</span></div>
+</div>
+
+<!-- Guardians -->
+<div class="card">
+<h3>Add Guardian</h3>
+<input type="text" id="gName" placeholder="Name">
+<input type="text" id="gPhone" placeholder="Phone with country code">
+<button class="add" onclick="addGuardian()">Add</button>
+<div id="guardianList"></div>
+</div>
+
+</div>
+
+<div class="popup" id="alertPopup">
+<h3>⚠ More than 3 medicines missed!</h3>
+<p>Caregivers have been notified.</p>
+<button onclick="alertPopup.style.display='none'">Close</button>
+</div>
+
+<script>
+
+let medicines = JSON.parse(localStorage.getItem("medicines")) || [];
+let history = JSON.parse(localStorage.getItem("history")) || {};
+let guardians = JSON.parse(localStorage.getItem("guardians")) || [];
+
+function saveData(){
+    localStorage.setItem("medicines",JSON.stringify(medicines));
+    localStorage.setItem("history",JSON.stringify(history));
+    localStorage.setItem("guardians",JSON.stringify(guardians));
+}
+
+function todayString(){
+    return new Date().toISOString().split("T")[0];
+}
+
+function addMedicine(){
+    let name=medName.value;
+    let time=medTime.value;
+    let repeat=repeatType.value;
+
+    if(name===""||time===""){alert("Enter details");return;}
+
+    medicines.push({name,time,repeat});
+    medName.value=""; medTime.value="";
+    saveData();
+    renderToday();
+}
+
+function renderToday(){
+    let list=document.getElementById("scheduleList");
+    list.innerHTML="";
+    let today=todayString();
+
+    if(!history[today]) history[today]=[];
+
+    medicines.forEach(m=>{
+        if(m.repeat==="daily" || m.repeat==="none"){
+            if(!history[today].find(h=>h.name===m.name && h.time===m.time)){
+                history[today].push({name:m.name,time:m.time,status:"upcoming"});
+            }
+        }
+    });
+
+    let now=new Date();
+    let current=now.getHours()*60+now.getMinutes();
+
+    history[today].forEach(item=>{
+        let [h,min]=item.time.split(":");
+        let medTime=parseInt(h)*60+parseInt(min);
+
+        if(item.status!=="done"){
+            if(current>medTime) item.status="missed";
+            else item.status="upcoming";
+        }
+
+        let div=document.createElement("div");
+        div.className="schedule-item "+(item.status==="done"?"done":item.status);
+        div.innerHTML=item.name+" - "+item.time;
+
+        if(item.status!=="done"){
+            let btn=document.createElement("button");
+            btn.className="taken";
+            btn.innerText="Taken";
+            btn.onclick=function(){
+                item.status="done";
+                saveData();
+                renderToday();
+            };
+            div.appendChild(btn);
+        }
+
+        list.appendChild(div);
+    });
+
+    updateStats();
+    saveData();
+}
+
+function updateStats(){
+    let today=todayString();
+    let up=history[today].filter(i=>i.status==="upcoming").length;
+    let tk=history[today].filter(i=>i.status==="done").length;
+    let ms=history[today].filter(i=>i.status==="missed").length;
+
+    upcoming.innerText=up;
+    taken.innerText=tk;
+    missed.innerText=ms;
+
+    if(ms>3){
+        notifyCaretakers();
+    }
+}
+
+function notifyCaretakers(){
+    if(guardians.length===0) return;
+
+    let message="⚠ ALERT: Patient missed more than 3 medicines today.";
+
+    window.open("https://wa.me/"+guardians[0].phone+"?text="+encodeURIComponent(message),"_blank");
+
+    alertPopup.style.display="block";
+}
+
+function addGuardian(){
+    let name=gName.value;
+    let phone=gPhone.value;
+    if(name===""||phone===""){alert("Enter guardian details");return;}
+    guardians.push({name,phone});
+    saveData();
+    displayGuardians();
+    gName.value=""; gPhone.value="";
+}
+
+function displayGuardians(){
+    guardianList.innerHTML="";
+    guardians.forEach(g=>{
+        let div=document.createElement("div");
+        div.className="guardian";
+        div.innerText=g.name+" - "+g.phone;
+        guardianList.appendChild(div);
+    });
+}
+
+function showHistory(){
+    let date=historyDate.value;
+    historyList.innerHTML="";
+    if(!history[date]){ historyList.innerHTML="No data"; return;}
+
+    history[date].forEach(item=>{
+        let div=document.createElement("div");
+        div.innerText=item.name+" - "+item.time+" ("+item.status+")";
+        historyList.appendChild(div);
+    });
+}
+
+displayGuardians();
+renderToday();
+setInterval(renderToday,60000);
+
+</script>
+
+</body>
+</html>
