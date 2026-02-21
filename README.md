@@ -48,14 +48,17 @@ Many patients forget to take medicines on time, and existing reminder systems la
 
 #### Screenshots
 
-![Screenshot1](./screenshots/home.png)  
-*Main dashboard – lists all medicines and next due time.*
+![Screenshot1](<img width="1920" height="1020" alt="2026-02-21 (1)" src="https://github.com/user-attachments/assets/ee250ed9-60d6-496a-8aad-be5d9e78f36f" />
+)  
 
-![Screenshot2](./screenshots/add‑medicine.png)  
-*Add‑medicine form where user specifies name, dose, schedule and guardian contact.*
 
-![Screenshot3](./screenshots/alert.png)  
-*Example alert displayed when a dose is missed and caretaker notification triggered.*
+![Screenshot2](<img width="1920" height="1020" alt="2026-02-21 (3)" src="https://github.com/user-attachments/assets/a4db22ef-9e3b-4484-b47f-6f4fcd80a9a0" />
+)  
+
+
+![Screenshot3](<img width="1920" height="1020" alt="2026-02-21 (4)" src="https://github.com/user-attachments/assets/33711bb8-f48c-478e-a866-7aebf0264d99" />
+)  
+
 
 > *(replace paths with your real images; the captions explain what they show)*
 
